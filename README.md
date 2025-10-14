@@ -34,7 +34,7 @@ pip install -U pip build wheel twine
 
 # Build and install the local wheel for development/testing
 python -m build
-pip install dist\speedtune-0.1.0-py3-none-any.whl
+pip install dist\speedtune-0.1.1py3-none-any.whl
 ```
 
 ## Minimal usage example
