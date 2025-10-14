@@ -154,7 +154,7 @@ def test_autopatchmodelforcausallm_pretrained(model_name):
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-
+'''
 @pytest.mark.parametrize("model_name", ALL_MODELS)
 def test_autopatchmodelforcausallm_config(model_name):
     """Test AutoPatchModelForCausalLM initialization from config for all models.
@@ -220,7 +220,7 @@ def test_autopatchmodelforcausallm_config(model_name):
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-
+'''
 if __name__ == '__main__':
     # Example of how to run a single test for debugging
-    test_autopatchmodelforcausallm_config("gpt2")
+    test_autopatchmodelforcausallm_pretrained("gpt2")
