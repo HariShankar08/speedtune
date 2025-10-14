@@ -7,7 +7,7 @@ and to run patched embeddings through a causal language model.
 __version__ = "0.1.0"
 
 # Re-export the public API from the package root.
-from .speedtune import AutoPatchModelForCausalLM, AutoPatchModelForSeq2SeqLM  # noqa: E402
+from .patch import AutoPatchModelForCausalLM, AutoPatchModelForSeq2SeqLM  # noqa: E402
 
 __all__ = [
     "__version__",
