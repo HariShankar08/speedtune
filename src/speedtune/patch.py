@@ -60,6 +60,12 @@ class AutoPatchModelForCausalLM(nn.Module):
         self.patch_size = patch_size
         self.patch_func = patch_func if patch_func is not None else self._calculate_patch
 
+    @property
+    def config(self):
+        if self.model is None:
+            raise ValueError('No model loaded yet')
+        return self.model.config
+
     @classmethod
     def from_pretrained(cls, model_name_or_path: str, *args, **kwargs):
         """Instantiate the class and load the model from pretrained weights."""
@@ -297,6 +303,12 @@ class AutoPatchModelForSeq2SeqLM(nn.Module):
         self.patch_size = patch_size
         self.patch_func = patch_func if patch_func is not None else self._calculate_patch
     
+    @property
+    def config(self):
+        if self.model is None:
+            raise ValueError('No model loaded yet')
+        return self.model.config
+        
     @classmethod
     def from_pretrained(cls, model_name_or_path: str, *args, **kwargs):
         """Instantiate the class and load the model from pretrained weights."""
