@@ -10,7 +10,7 @@ the base model while preserving a compatible `forward` API.
 ## Features
 
 - Compress token embeddings into patches (mean pooling by default).
-- Forward patched embeddings to causal LMs and (planned) seq2seq LMs.
+- Forward patched embeddings to causal LMs and seq2seq LMs (seq2seq implementation pending).
 - Optional user-provided patch function for custom aggregation.
 
 ## Quick install
@@ -34,7 +34,7 @@ pip install -U pip build wheel twine
 
 # Build and install the local wheel for development/testing
 python -m build
-pip install dist\speedtune-0.1.0-py3-none-any.whl
+pip install dist\speedtune-0.1.1py3-none-any.whl
 ```
 
 ## Minimal usage example

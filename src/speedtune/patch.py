@@ -60,6 +60,12 @@ class AutoPatchModelForCausalLM(nn.Module):
         self.patch_size = patch_size
         self.patch_func = patch_func if patch_func is not None else self._calculate_patch
 
+    @property
+    def config(self):
+        if self.model is None:
+            raise ValueError('No model loaded yet')
+        return self.model.config
+
     @classmethod
     def from_pretrained(cls, model_name_or_path: str, *args, **kwargs):
         """Instantiate the class and load the model from pretrained weights."""
@@ -162,14 +168,14 @@ class AutoPatchModelForCausalLM(nn.Module):
         input_ids: Optional[torch.LongTensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Cache] = None,
+        past_key_values= None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
         labels: Optional[torch.LongTensor] = None,
         use_cache: Optional[bool] = None,
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
-        **kwargs: Unpack[TransformersKwargs],
+        **kwargs,
     ) -> CausalLMOutputWithPast:
         """Forward pass that runs the base causal LM on patched embeddings.
 
@@ -297,6 +303,12 @@ class AutoPatchModelForSeq2SeqLM(nn.Module):
         self.patch_size = patch_size
         self.patch_func = patch_func if patch_func is not None else self._calculate_patch
     
+    @property
+    def config(self):
+        if self.model is None:
+            raise ValueError('No model loaded yet')
+        return self.model.config
+        
     @classmethod
     def from_pretrained(cls, model_name_or_path: str, *args, **kwargs):
         """Instantiate the class and load the model from pretrained weights."""

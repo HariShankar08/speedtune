@@ -223,4 +223,4 @@ def test_autopatchmodelforcausallm_pretrained(model_name):
 
 if __name__ == '__main__':
     # Example of how to run a single test for debugging
-    test_autopatchmodelforcausallm_config("gpt2")
+    test_autopatchmodelforcausallm_pretrained("gpt2")
