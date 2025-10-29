@@ -30,7 +30,7 @@ def test_autopatchmodelforseq2seqlm_pretrained(model_name):
     batch_size = 2
     enc_seq_len = 16
     dec_seq_len = 8
-    vocab_size = getattr(model.config, "vocab_size", 32128)
+    vocab_size = model.config.vocab_size
 
     encoder_input_ids = torch.randint(0, vocab_size, (batch_size, enc_seq_len)).to(device)
     decoder_input_ids = torch.randint(0, vocab_size, (batch_size, dec_seq_len)).to(device)
@@ -81,7 +81,7 @@ def test_autopatchmodelforseq2seqlm_config(model_name):
     batch_size = 2
     enc_seq_len = 16
     dec_seq_len = 8
-    vocab_size = getattr(model.config, "vocab_size", 32128)
+    vocab_size = model.config.vocab_size
 
     encoder_input_ids = torch.randint(0, vocab_size, (batch_size, enc_seq_len)).to(device)
     decoder_input_ids = torch.randint(0, vocab_size, (batch_size, dec_seq_len)).to(device)
