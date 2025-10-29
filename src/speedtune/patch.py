@@ -16,9 +16,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM
+from transformers.cache_utils import Cache
 from typing import Optional, Union, Tuple
 from typing_extensions import Unpack, TypedDict
 from transformers.modeling_outputs import CausalLMOutputWithPast, BaseModelOutputWithPast, Seq2SeqLMOutput
+from typing import Any, Dict
 
 
 
