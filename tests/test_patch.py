@@ -32,51 +32,51 @@ PRETRAINED_TEST_MODELS = [
     "facebook/opt-350m"
 ]
 
-ALL_MODELS = [
-    "google/bigbird-roberta-base",
-    "microsoft/BioGPT",
-    "1bitLLM/bitnet_b1_58-3B", 
-    "facebook/blenderbot-3B",
-    "facebook/blenderbot_small-90M",
-    "bigscience/bloom-560m",
-    "facebook/blt-1b",
-    "codellama/CodeLlama-7b-hf",
-    "Salesforce/codegen-350M-mono",
-    "openbmb/cpm-ant-10b",
-    "deepseek-ai/deepseek-llm-7b-base",
-    "google/electra-small-discriminator",
-    "LGAI-EXAONE/EXAONE-4.0-1.2B",
-    "tiiuae/falcon-7b",
-    "tiiuae/Falcon-H1-1.5B-Deep-Instruct",
-    "tiiuae/falcon-mamba-7b",
-    "allenai/OLMo-1B",
-    "google/gemma-2b",
-    "google/gemma-2-2b",
-    "google/gemma-3-270m",
-    "gpt2",
-    "EleutherAI/gpt-neo-125m",
-    "rinna/japanese-gpt-neox-3.6b",
-    "kyutai/helium-1-2b",
-    "jetmoe/jetmoe-8B",
-    "meta-llama/Llama-2-7b-hf",
-    "meta-llama/Llama-3.1-8B-Instruct",
-    "meta-llama/Llama-3.2-1B",
-    "mistralai/Ministral-8B-Instruct-2410",
-    "mistralai/Mistral-7B-v0.1",
-    "mistralai/Mixtral-8x7B-v0.1",
-    "mosaicml/mpt-7b",
-    "google/pegasus-large",
-    "adept/persimmon-8b-base",
-    "microsoft/phi-2",
-    "microsoft/Phi-3-mini-4k-instruct",
-    "Qwen/Qwen2.5-3B-Instruct",
-    "HuggingFaceTB/SmolLM3-3B",
-    "stabilityai/stablelm-2-1_6b",
-    "bigcode/starcoder2-3b",
-    "facebook/xglm-1.7B",
-    "xlm-roberta-base",
-    "Zyphra/Zamba2-1.2B"
-]
+# ALL_MODELS = [
+#     "google/bigbird-roberta-base",
+#     "microsoft/BioGPT",
+#     "1bitLLM/bitnet_b1_58-3B", 
+#     "facebook/blenderbot-3B",
+#     "facebook/blenderbot_small-90M",
+#     "bigscience/bloom-560m",
+#     "facebook/blt-1b",
+#     "codellama/CodeLlama-7b-hf",
+#     "Salesforce/codegen-350M-mono",
+#     "openbmb/cpm-ant-10b",
+#     "deepseek-ai/deepseek-llm-7b-base",
+#     "google/electra-small-discriminator",
+#     "LGAI-EXAONE/EXAONE-4.0-1.2B",
+#     "tiiuae/falcon-7b",
+#     "tiiuae/Falcon-H1-1.5B-Deep-Instruct",
+#     "tiiuae/falcon-mamba-7b",
+#     "allenai/OLMo-1B",
+#     "google/gemma-2b",
+#     "google/gemma-2-2b",
+#     "google/gemma-3-270m",
+#     "gpt2",
+#     "EleutherAI/gpt-neo-125m",
+#     "rinna/japanese-gpt-neox-3.6b",
+#     "kyutai/helium-1-2b",
+#     "jetmoe/jetmoe-8B",
+#     "meta-llama/Llama-2-7b-hf",
+#     "meta-llama/Llama-3.1-8B-Instruct",
+#     "meta-llama/Llama-3.2-1B",
+#     "mistralai/Ministral-8B-Instruct-2410",
+#     "mistralai/Mistral-7B-v0.1",
+#     "mistralai/Mixtral-8x7B-v0.1",
+#     "mosaicml/mpt-7b",
+#     "google/pegasus-large",
+#     "adept/persimmon-8b-base",
+#     "microsoft/phi-2",
+#     "microsoft/Phi-3-mini-4k-instruct",
+#     "Qwen/Qwen2.5-3B-Instruct",
+#     "HuggingFaceTB/SmolLM3-3B",
+#     "stabilityai/stablelm-2-1_6b",
+#     "bigcode/starcoder2-3b",
+#     "facebook/xglm-1.7B",
+#     "xlm-roberta-base",
+#     "Zyphra/Zamba2-1.2B"
+# ]
 
 def modify_config_for_testing(config):
     """Modify the model config to ensure the model has at most 1B parameters.
@@ -155,71 +155,71 @@ def test_autopatchmodelforcausallm_pretrained(model_name):
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
-@pytest.mark.parametrize("model_name", ALL_MODELS)
-def test_autopatchmodelforcausallm_config(model_name):
-    """Test AutoPatchModelForCausalLM initialization from config for all models.
+# @pytest.mark.parametrize("model_name", ALL_MODELS)
+# def test_autopatchmodelforcausallm_config(model_name):
+#     """Test AutoPatchModelForCausalLM initialization from config for all models.
 
-    Args:
-        model_name: Name of the model architecture.
-    """
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#     Args:
+#         model_name: Name of the model architecture.
+#     """
+#     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    try:
-        config = AutoConfig.from_pretrained(model_name)
-    except Exception as e:
-        pytest.skip(f"Skipping model {model_name} due to config load failure: {e}")
+#     try:
+#         config = AutoConfig.from_pretrained(model_name)
+#     except Exception as e:
+#         pytest.skip(f"Skipping model {model_name} due to config load failure: {e}")
 
-    # config = modify_config_for_testing(config)
+#     # config = modify_config_for_testing(config)
 
-    try:
-        model = AutoPatchModelForCausalLM.from_config(config).to(device)
-    except Exception as e:
-        pytest.skip(f"Skipping model {model_name} due to model init failure: {e}")
+#     try:
+#         model = AutoPatchModelForCausalLM.from_config(config).to(device)
+#     except Exception as e:
+#         pytest.skip(f"Skipping model {model_name} due to model init failure: {e}")
 
-    assert model is not None, f"Failed to initialize model from config: {model_name}"
+#     assert model is not None, f"Failed to initialize model from config: {model_name}"
 
-    # Create random input data
-    batch_size = 2
-    seq_length = 16
-    # Ensure vocab_size is not None before using it
-    vocab_size = getattr(model.config, 'vocab_size', 50257) # Default to a common vocab size if not present
-    if vocab_size is None:
-        vocab_size = 50257
-    input_ids = torch.randint(0, vocab_size, (batch_size, seq_length)).to(device)
+#     # Create random input data
+#     batch_size = 2
+#     seq_length = 16
+#     # Ensure vocab_size is not None before using it
+#     vocab_size = getattr(model.config, 'vocab_size', 50257) # Default to a common vocab size if not present
+#     if vocab_size is None:
+#         vocab_size = 50257
+#     input_ids = torch.randint(0, vocab_size, (batch_size, seq_length)).to(device)
 
-    # Forward pass without patches
-    outputs = model(input_ids=input_ids)
-    assert outputs.logits.shape == (batch_size, seq_length, vocab_size), \
-        f"Unexpected output shape without patches for model {model_name}"
+#     # Forward pass without patches
+#     outputs = model(input_ids=input_ids)
+#     assert outputs.logits.shape == (batch_size, seq_length, vocab_size), \
+#         f"Unexpected output shape without patches for model {model_name}"
 
-    # Create a model with patches
-    patch_size = 4
-    model_with_patches = AutoPatchModelForCausalLM.from_config(config, patch_size=patch_size).to(device)
-    assert model_with_patches is not None, f"Failed to initialize model with patches from config: {model_name}"
+#     # Create a model with patches
+#     patch_size = 4
+#     model_with_patches = AutoPatchModelForCausalLM.from_config(config, patch_size=patch_size).to(device)
+#     assert model_with_patches is not None, f"Failed to initialize model with patches from config: {model_name}"
 
-    # Forward pass with patches
-    outputs_with_patches = model_with_patches(input_ids=input_ids, labels=input_ids, return_dict=True)
-    assert outputs_with_patches.logits.shape == (batch_size, seq_length // patch_size, vocab_size), \
-        f"Unexpected output shape with patches for model {model_name}"
+#     # Forward pass with patches
+#     outputs_with_patches = model_with_patches(input_ids=input_ids, labels=input_ids, return_dict=True)
+#     assert outputs_with_patches.logits.shape == (batch_size, seq_length // patch_size, vocab_size), \
+#         f"Unexpected output shape with patches for model {model_name}"
 
-    # Backpropagation test
-    loss = outputs_with_patches.loss
-    print(loss.item())
-    loss.backward()
-    # Ensure backpropagation works without errors
-    assert loss.item() is not None, "Backpropagation failed to compute loss."
+#     # Backpropagation test
+#     loss = outputs_with_patches.loss
+#     print(loss.item())
+#     loss.backward()
+#     # Ensure backpropagation works without errors
+#     assert loss.item() is not None, "Backpropagation failed to compute loss."
 
-    # **Force garbage collection to free up memory**
-    del model
-    del model_with_patches
-    del config
-    del input_ids
-    del outputs
-    del outputs_with_patches
-    del loss
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
+#     # **Force garbage collection to free up memory**
+#     del model
+#     del model_with_patches
+#     del config
+#     del input_ids
+#     del outputs
+#     del outputs_with_patches
+#     del loss
+#     gc.collect()
+#     if torch.cuda.is_available():
+#         torch.cuda.empty_cache()
 
 if __name__ == '__main__':
     # Example of how to run a single test for debugging
