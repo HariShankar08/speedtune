@@ -78,7 +78,7 @@ class AutoPatchModelForCausalLM(nn.Module):
     @classmethod
     def from_config(cls, config, *args, **kwargs):
         """Instantiate the class and load the model from a config object."""
-        instance = cls(*args, **kwargs)
+        instance = cls('[CUSTOM_MODEL]', *args, **kwargs)
         instance.model = AutoModelForCausalLM.from_config(config)
         return instance
 
@@ -321,7 +321,7 @@ class AutoPatchModelForSeq2SeqLM(nn.Module):
     @classmethod
     def from_config(cls, config, *args, **kwargs):
         """Instantiate the class and load the model from a config object."""
-        instance = cls(*args, **kwargs)
+        instance = cls('[CUSTOM_MODEL]', *args, **kwargs)
         instance.model = AutoModelForSeq2SeqLM.from_config(config)
         return instance
 
