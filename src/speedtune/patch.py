@@ -428,17 +428,16 @@ class AutoPatchModelForSeq2SeqLM(nn.Module):
     ) -> Union[tuple[torch.FloatTensor], Seq2SeqLMOutput]:
         pass
         
-        inputs_embeds, attention_mask, position_ids = self.prepare_patch_inputs(
+        inputs_embeds, attention_mask, _ = self.prepare_patch_inputs(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
-                position_ids=position_ids,
+                position_ids=None,
                 inputs_embeds=inputs_embeds,
             )
         
         encoder_outputs = self.model.encoder(
             input_ids=None,
             attention_mask=attention_mask,
-            position_ids=position_ids,
             inputs_embeds=inputs_embeds,
             return_dict=return_dict,
             output_attentions=output_attentions,
@@ -449,7 +448,7 @@ class AutoPatchModelForSeq2SeqLM(nn.Module):
         if labels is not None and decoder_input_ids is None:
             decoder_input_ids = self.model._shift_right(labels)
 
-        decoder_inputs_embeds, decoder_attention_mask, decoder_position_ids = self.prepare_patch_inputs(
+        decoder_inputs_embeds, decoder_attention_mask, _ = self.prepare_patch_inputs(
                 input_ids=decoder_input_ids,
                 attention_mask=decoder_attention_mask,
                 position_ids=None,
@@ -459,7 +458,6 @@ class AutoPatchModelForSeq2SeqLM(nn.Module):
         decoder_outputs = self.model.decoder(
             input_ids=None,
             attention_mask=decoder_attention_mask,
-            position_ids=decoder_position_ids,
             inputs_embeds=decoder_inputs_embeds,
             past_key_values=past_key_values,
             encoder_hidden_states=encoder_outputs[0],
