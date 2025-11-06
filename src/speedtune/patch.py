@@ -15,11 +15,12 @@ provide well-formed inputs (e.g. sequence length divisible by `patch_size`).
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM
+from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification
 from transformers.cache_utils import Cache
 from typing import Optional, Union, Tuple
 from typing_extensions import Unpack, TypedDict
-from transformers.modeling_outputs import CausalLMOutputWithPast, BaseModelOutputWithPast, Seq2SeqLMOutput
+from transformers.modeling_outputs import CausalLMOutputWithPast, BaseModelOutputWithPast, Seq2SeqLMOutput, SequenceClassifierOutputWithPast
+from transformers.utils import logging
 from typing import Any, Dict
 
 
@@ -501,3 +502,177 @@ class AutoPatchModelForSeq2SeqLM(nn.Module):
             encoder_hidden_states=getattr(encoder_outputs, "hidden_states", None),
             encoder_attentions=getattr(encoder_outputs, "attentions", None),
         )
+
+
+class AutoPatchModelForSequenceClassification(nn.Module):
+    """Wrapper that compresses token embeddings into patches and forwards them to a sequence classification model.
+
+        This wrapper takes a pretrained sequence classification model (loaded via
+        :func:`transformers.AutoModelForSequenceClassification.from_pretrained`) and exposes a
+        compatible ``forward`` signature. Before calling the underlying model it
+        converts token-level embeddings into patch-level embeddings using
+        ``patch_size`` and ``patch_func``.
+
+        Args:
+            model_name_or_path: Model identifier (Hugging Face model name or local
+                path) to load the base sequence classification model from.
+            patch_size: Number of consecutive tokens to group into a single
+                "patch". Sequence length must be divisible by ``patch_size``.
+            patch_func: Optional callable that maps a tensor of shape
+                ``(batch, num_patches, patch_size, dim)`` to ``(batch, num_patches, dim)``.
+                By default a mean-pooling implementation is used.
+    """
+
+    def __init__(self, model_name_or_path: str, patch_size: int = 1, patch_func: Optional[callable] = None):
+        super().__init__()
+        self.model = None
+        self.model_name_or_path = model_name_or_path
+        self.patch_size = patch_size
+        self.patch_func = patch_func if patch_func is not None else self._calculate_patch
+
+    def _calculate_patch(self, x: torch.Tensor) -> torch.Tensor:
+        # Default patch function: mean pooling
+        return x.mean(dim=2)
+
+    @classmethod
+    def from_pretrained(cls, model_name_or_path: str, *args, **kwargs):
+        """Instantiate the class and load the model from pretrained weights."""
+        instance = cls(model_name_or_path, *args, **kwargs)
+        instance.model = AutoModelForSequenceClassification.from_pretrained(model_name_or_path)
+        return instance
+    
+    @classmethod
+    def from_config(cls, config, *args, **kwargs):
+        """Instantiate the class and load the model from a config object."""
+        instance = cls('[CUSTOM_MODEL]', *args, **kwargs)
+        instance.model = AutoModelForSequenceClassification.from_config(config)
+        return instance
+    
+    def prepare_patch_inputs(
+            self,
+            input_ids: torch.Tensor,
+            attention_mask: Optional[torch.Tensor] = None,
+            position_ids: Optional[torch.Tensor] = None,
+            inputs_embeds: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Convert token-level inputs into patch-level inputs.
+
+        This method computes the input embeddings (if not provided), groups
+        them into patches of ``self.patch_size``, and returns the patched
+        embeddings together with a downsampled attention mask and position
+        ids.
+
+        Parameters
+        ----------
+        input_ids : torch.Tensor
+            Long tensor of shape ``(batch, seq_len)`` containing token ids.
+        attention_mask : Optional[torch.Tensor]
+            Optional attention mask of shape ``(batch, seq_len)``. If
+            provided it will be downsampled by taking every ``patch_size``-th
+            element along the sequence dimension.
+        position_ids : Optional[torch.Tensor]
+            Optional position ids of shape ``(batch, seq_len)`` or
+            ``(batch, num_patches)``. If omitted a new position ids tensor is
+            created for the patches.
+        inputs_embeds : Optional[torch.Tensor]
+            Optional precomputed input embeddings. If ``None`` the model's
+            embedding layer is used to compute embeddings from ``input_ids``.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]
+            A tuple ``(inputs_embeds, attention_mask, position_ids)`` where
+            ``inputs_embeds`` has shape ``(batch, num_patches, hidden_dim)``,
+            ``attention_mask`` has shape ``(batch, num_patches)`` and
+            ``position_ids`` has shape ``(batch, num_patches)``.
+        """
+        batch_size, seq_length = input_ids.shape
+        num_patches = seq_length // self.patch_size
+
+        # Get the original embeddings
+        if inputs_embeds is None:
+            inputs_embeds = self.model.get_input_embeddings()(input_ids)
+        else:
+            inputs_embeds = self.model.embed_tokens(input_ids)
+
+        # Compress into patches using the patch function.
+        inputs_embeds = inputs_embeds.view(batch_size, num_patches, self.patch_size, -1)
+        inputs_embeds = self.patch_func(inputs_embeds)
+
+        # Adjust position ids
+        if position_ids is None:
+            position_ids = torch.arange(0, num_patches, dtype=torch.long, device=input_ids.device)
+            position_ids = position_ids.view(1, -1).expand(batch_size, -1)
+        else:
+            position_ids = position_ids[:, :num_patches]
+
+        # Adjust attention mask
+        if attention_mask is not None:
+            attention_mask = attention_mask[:, ::self.patch_size]
+        else:
+            attention_mask = torch.ones((batch_size, num_patches), device=input_ids.device)
+
+        return inputs_embeds, attention_mask, position_ids
+
+
+    def forward(
+        self,
+        input_ids: Optional[torch.LongTensor] = None,
+        attention_mask: Optional[torch.Tensor] = None,
+        position_ids: Optional[torch.LongTensor] = None,
+        past_key_values: Optional[Cache] = None,
+        inputs_embeds: Optional[torch.FloatTensor] = None,
+        labels: Optional[torch.LongTensor] = None,
+        use_cache: Optional[bool] = None,
+        **kwargs,
+    ) -> SequenceClassifierOutputWithPast:
+        
+        inputs_embeds, attention_mask, position_ids = self.prepare_patch_inputs(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            position_ids=position_ids,
+            inputs_embeds=inputs_embeds,
+        )
+
+
+        transformer_outputs: BaseModelOutputWithPast = getattr(self, self.model.base_model_prefix)(
+            None,
+            attention_mask=attention_mask,
+            position_ids=position_ids,
+            past_key_values=past_key_values,
+            inputs_embeds=inputs_embeds,
+            use_cache=use_cache,
+            **kwargs,
+        )
+        hidden_states = transformer_outputs.last_hidden_state
+        logits = self.model.score(hidden_states)
+
+        if input_ids is not None:
+            batch_size = input_ids.shape[0]
+        else:
+            batch_size = inputs_embeds.shape[0]
+
+        if self.config.pad_token_id is None and batch_size != 1:
+            raise ValueError("Cannot handle batch sizes > 1 if no padding token is defined.")
+        if self.config.pad_token_id is None:
+            last_non_pad_token = -1
+        
+        # AutoPatchModel needs padding right. Find the last non-pad token using the attention mask.
+        else:
+            if attention_mask is None:
+                attention_mask = torch.ones_like(input_ids, device=logits.device)
+            last_non_pad_token = attention_mask.long().sum(dim=1) - 1
+
+        pooled_logits = logits[torch.arange(batch_size, device=logits.device), last_non_pad_token]
+
+        loss = None
+        if labels is not None:
+            loss = self.loss_function(logits=logits, labels=labels, pooled_logits=pooled_logits, config=self.config)
+
+        return SequenceClassifierOutputWithPast(
+            loss=loss,
+            logits=pooled_logits,
+            past_key_values=transformer_outputs.past_key_values,
+            hidden_states=transformer_outputs.hidden_states,
+            attentions=transformer_outputs.attentions,
+        )        
