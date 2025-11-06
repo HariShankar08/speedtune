@@ -641,7 +641,7 @@ class AutoPatchModelForSequenceClassification(nn.Module):
         )
 
 
-        transformer_outputs: BaseModelOutputWithPast = getattr(self, self.model.base_model_prefix)(
+        transformer_outputs: BaseModelOutputWithPast = self.model.model(
             None,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -673,7 +673,7 @@ class AutoPatchModelForSequenceClassification(nn.Module):
 
         loss = None
         if labels is not None:
-            loss = self.loss_function(logits=logits, labels=labels, pooled_logits=pooled_logits, config=self.config)
+            loss = self.model.loss_function(logits=logits, labels=labels, pooled_logits=pooled_logits, config=self.config)
 
         return SequenceClassifierOutputWithPast(
             loss=loss,

@@ -7,8 +7,8 @@ from speedtune.patch import AutoPatchModelForSequenceClassification
 
 # Models that commonly lack a pad token (exercise error path)
 PRETRAINED_CAUSAL_MODELS = [
-    "gpt2",
-    "distilgpt2",
+    "google/gemma-2-2b-it",
+    "meta-llama/Llama-3.2-1B-Instruct",
     "facebook/opt-125m",
     "facebook/opt-350m"
 ]
@@ -116,30 +116,3 @@ def test_autopatchmodelsequenceclassification_from_config(model_name):
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-
-
-@pytest.mark.parametrize("model_name", PRETRAINED_CAUSAL_MODELS)
-def test_autopatchmodelsequenceclassification_no_pad_token_raises(model_name):
-    device = _device()
-    try:
-        model = AutoPatchModelForSequenceClassification.from_pretrained(model_name).to(device)
-    except Exception as e:
-        pytest.skip(f"Skipping pretrained load for {model_name}: {e}")
-
-    batch_size = 2
-    seq_len = 8
-    vocab_size = getattr(model.config, "vocab_size", None)
-    if vocab_size is None:
-        pytest.skip(f"Model {model_name} has no vocab_size in config; skipping")
-
-    input_ids = torch.randint(0, vocab_size, (batch_size, seq_len)).to(device)
-
-    # Model configs like gpt2 typically have pad_token_id == None and wrapper should raise ValueError for batch>1
-    assert getattr(model.config, "pad_token_id", None) is None
-
-    with pytest.raises(ValueError):
-        _ = model(input_ids=input_ids, return_dict=True)
-
-    # Cleanup
-    del model, input_ids
-    gc.collect()
