@@ -533,6 +533,12 @@ class AutoPatchModelForSequenceClassification(nn.Module):
     def _calculate_patch(self, x: torch.Tensor) -> torch.Tensor:
         # Default patch function: mean pooling
         return x.mean(dim=2)
+    
+    @property
+    def config(self):
+        if self.model is None:
+            raise ValueError('No model loaded yet')
+        return self.model.config
 
     @classmethod
     def from_pretrained(cls, model_name_or_path: str, *args, **kwargs):
